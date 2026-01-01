@@ -43,34 +43,7 @@ def jsonl_generator(file_path):
             if line:
                 yield json.loads(line)
 
-def llm_usage():
-    # Usage
-    parser = JSONLParser('../wikipedia-cn-20230720-filtered.jsonl')
-
-    # Get all data
-    all_data = parser.parse()
-
-    cur_id = 1
-    
-    # Process incrementally
-    for record in parser.iter_parse():
-        file_name = f"wiki_{cur_id}.txt"
-        with open("WikiMDs/" + file_name, 'w', encoding='utf-8') as f:
-            f.write(record["completion"])
-        if cur_id >= 10:
-            break
-        cur_id = cur_id + 1
-
 def main():
-    cur_id = 100
-    
-    for record in jsonl_generator('../wikipedia-cn-20230720-filtered.jsonl'):
-        file_name = f"WikiMDs/wiki_{cur_id}.txt"
-        with open(file_name, 'w', encoding='utf-8') as f:
-            f.write(record["completion"])
-
-        cur_id = cur_id + 1
-
     parser = argparse.ArgumentParser(
         description="JSONL Parser",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -114,3 +87,4 @@ Usage:
 
 if __name__ == "__main__":
     sys.exit(main())
+
