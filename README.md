@@ -6,7 +6,7 @@
 
 ## 数据获取
 
-由于题目中给出的数据链接（`https://dumps.wikimedia.org/zhwiki/20250201/`）已失效，我们改用最新版本：
+最新版本：
 
 - 数据来源：[Wikimedia Dump](https://dumps.wikimedia.org/)
 - 文件名称：[zhwiki-日期-pages-articles-multistream.xml.bz2](https://dumps.wikimedia.org/zhwiki/20251220/zhwiki-20251220-pages-articles.xml.bz2)
