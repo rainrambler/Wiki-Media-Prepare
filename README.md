@@ -8,24 +8,25 @@
 
 由于题目中给出的数据链接（`https://dumps.wikimedia.org/zhwiki/20250201/`）已失效，我们改用最新版本：
 
-- 数据来源：[https://dumps.wikimedia.org/zhwiki/20250701/](https://dumps.wikimedia.org/zhwiki/20250701/)
-- 文件名称：`zhwiki-20250701-pages-articles-multistream.xml.bz2`
+- 数据来源：[Wikimedia Dump](https://dumps.wikimedia.org/)
+- 文件名称：[zhwiki-日期-pages-articles-multistream.xml.bz2](https://dumps.wikimedia.org/zhwiki/20251220/zhwiki-20251220-pages-articles.xml.bz2)
 
 ```bash
-wget https://dumps.wikimedia.org/zhwiki/20250701/zhwiki-20250701-pages-articles-multistream.xml.bz2
+wget https://dumps.wikimedia.org/zhwiki/20250701/zhwiki-20251220-pages-articles.xml.bz2
 ```
 
 ---
 
 ## 环境依赖
 
-使用`conda`管理环境，并安装以下依赖：
+使用`uv`管理环境，并安装以下依赖：
 
 ```bash
-conda create --name wikimedia python=3.10 -y
-conda activate wikimedia
-pip install -r requirements.txt
+uv venv --python 3.10
+source .venv/bin/activate
+uv add mwparserfromhell tqdm
 ```
+
 **请确保`python`版本最高为`3.10`！**
 
 ---
@@ -37,20 +38,7 @@ pip install -r requirements.txt
 使用 [WikiExtractor](https://github.com/attardi/wikiextractor) 提取 `Wikipedia` 原始内容：
 
 ```bash
-chmod -x ./extract.sh 
-./extract.sh
-```
-
-其中 `extract.sh` 内容如下：
-
-```bash
-#!/bin/bash
-python -m wikiextractor.WikiExtractor \
-   -b 10M \
-   -o extracted \
-   --json \
-   --no-templates \
-   zhwiki-20250701-pages-articles-multistream.xml.bz2
+python3 -m wikiextractor.WikiExtractor -b 100M -o extracted --json --no-templates zhwiki-20250720-pages-articles.xml.bz2
 ```
 
 提取结果将被保存在 `extracted/` 目录下，结构为分段的子目录（如 `AA/wiki\_00`、`AB/wiki\_01` ...）。
@@ -62,11 +50,7 @@ python -m wikiextractor.WikiExtractor \
 使用 `wiki2json.py` 对提取结果进行进一步清洗：
 
 ```bash
-python wiki2json.py \
-  --input_dir extracted \
-  --output_file cleaned_wiki_1000.jsonl \
-  --max_docs 1000 \
-  --min_length 100
+python3 wiki2json.py --input_dir extracted --output_file zhwiki_1220.jsonl --min_length 100  --max_docs -1   
 ```
 
 清洗后将输出为 `JSONL` 格式，形如：
@@ -89,7 +73,6 @@ python wiki2json.py \
 ## 清洗策略说明
 
 - 使用 `mwparserfromhell` 移除维基语法与模板；
-- 使用 `OpenCC` 将内容统一转换为简体中文（t2s）；
 - 过滤非主命名空间的页面（如“分类:”、“模板:”等）；
 - 去除文本长度不足 100 字的页面；
 - 所有页面元数据（除正文 `text` 外）均存储于 `"meta"` 字段中，便于下游使用。
@@ -100,7 +83,6 @@ python wiki2json.py \
 | ------------ | --------------------- | ----------------------- | --------------------------- |
 | 部分页面为分类页/重定向 | 非主内容                  | 直接跳过                    |                             |
 | Wiki 语法嵌套复杂  | \`\[\[链接              \| 显示文本]]\` 等多层嵌套          | 使用 `mwparserfromhell` 做标准解析 |
-| 繁简体混杂        | 预训练需统一语言规范            | 通过 `OpenCC` 进行简繁转换      |                             |
 | 特殊字符         | 多余换行、不可见符号等           | 标准清洗合并空格、剥离不可见字符        |                             |
 
 ---
