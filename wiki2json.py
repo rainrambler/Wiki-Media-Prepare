@@ -3,15 +3,13 @@ import os
 import argparse
 from mwparserfromhell import parse
 from tqdm import tqdm
-from opencc import OpenCC
 
 class WikiCleaner:
-    def __init__(self, input_dir, output_file, max_docs=1000, min_length=100, convert_mode='t2s'):
+    def __init__(self, input_dir, output_file, max_docs=1000, min_length=100):
         self.input_dir = input_dir
         self.output_file = output_file
         self.max_docs = max_docs
         self.min_length = min_length
-        self.converter = OpenCC("t2s")
         self.count = 0
         self.skipped = 0
         self.keys = set()
@@ -19,12 +17,10 @@ class WikiCleaner:
     def clean_text(self, text):
         wikicode = parse(text)
         cleaned = wikicode.strip_code().strip()
-        if self.converter:
-            cleaned = self.converter.convert(cleaned)
         return cleaned
 
     def clean_title(self, title):
-        return self.converter.convert(title) if self.converter else title
+        return title
 
     def is_valid_title(self, title):
         return not any(title.startswith(ns) for ns in ["分类:", "Wikipedia:", "模板:", "File:"])
@@ -79,7 +75,7 @@ class WikiCleaner:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="清洗中文维基百科文本，转换为简体并保存为 JSONL 格式")
+    parser = argparse.ArgumentParser(description="清洗中文维基百科文本，并保存为 JSONL 格式")
     parser.add_argument('--input_dir', type=str, default='extracted', help='输入目录（包含 WikiExtractor 输出子目录）')
     parser.add_argument('--output_file', type=str, default='cleaned_wiki_1000.jsonl', help='输出文件路径')
     parser.add_argument('--max_docs', type=int, default=1000, help='最多输出的文档数量（设为 -1 表示全部）')
